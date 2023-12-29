@@ -15,7 +15,9 @@
     "timeWeek": 221,
     "timeMonth": 221,
     "timeYear": 221,
-    "dailyMinutesDown": {}
+    "dailyMinutesDown": {
+      "2023-12-29": 0
+    }
   },
   {
     "name": "Dashboard",
