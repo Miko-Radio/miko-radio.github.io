@@ -5,18 +5,18 @@
     "icon": "https://icons.duckduckgo.com/ip3/mikoradio.com.ico",
     "slug": "miko",
     "status": "up",
-    "uptime": "100.00%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "100.00%",
-    "uptimeYear": "100.00%",
-    "time": 221,
-    "timeDay": 221,
-    "timeWeek": 221,
-    "timeMonth": 221,
-    "timeYear": 221,
+    "uptime": "91.87%",
+    "uptimeDay": "91.87%",
+    "uptimeWeek": "91.87%",
+    "uptimeMonth": "91.87%",
+    "uptimeYear": "91.87%",
+    "time": 188,
+    "timeDay": 188,
+    "timeWeek": 188,
+    "timeMonth": 188,
+    "timeYear": 188,
     "dailyMinutesDown": {
-      "2023-12-29": 0
+      "2023-12-29": 103
     }
   },
   {
