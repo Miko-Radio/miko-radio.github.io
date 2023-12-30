@@ -19,7 +19,7 @@ status-website:
   name: Miko Radio
   theme: night
   introTitle: "Miko status page for his websites. Powered by github actions."
-  introMessage: See which of my websites are up, which are down, and which are broken here!
+  introMessage: See Miko Radio status for all resources, which are down, and which are broken here!
   navbar:
     - title: Uptime
       href: /
