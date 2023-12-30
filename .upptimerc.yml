@@ -18,7 +18,7 @@ status-website:
   logoUrl: https://raw.githubusercontent.com/Miko-Radio/miko-radio.github.io/main/miko.webp
   name: Miko Radio
   theme: night
-  introTitle: "Miko Radio status websites. Powered by github actions."
+  introTitle: "Miko Radio Resources. Powered by github actions."
   introMessage: Miko Radio Resources, which are down, and which are broken here!
   navbar:
     - title: Uptime
