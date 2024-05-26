@@ -13,7 +13,7 @@ sites:
 status-website:
   # Add your custom domains names, or remove the `cname` line if you don't have a domain
   # Uncomment the `baseUrl` line if you don't have a custom domain and add your repo name there
-  # cname: status.mikoradio.com
+  cname: miko-radio.github.io
   # baseUrl: /uptime-monitor
   logoUrl: https://raw.githubusercontent.com/Miko-Radio/miko-radio.github.io/main/miko.webp
   name: Miko Radio
