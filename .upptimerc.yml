@@ -26,7 +26,7 @@ status-website:
     - title: GitHub
       href: https://github.com/$OWNER
     - title: Community
-      href: https://discord.gg/YZR9YF96Fs
+      href: https://discord.gg/VhAj8K4C6F
       
 theme: dark
 skipDescriptionUpdate: true
