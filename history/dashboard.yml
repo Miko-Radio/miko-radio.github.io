@@ -1,7 +1,7 @@
-url: http://panel.mikoradio.com:4001/
-status: down
-code: 0
-responseTime: 0
-lastUpdated: 2024-06-02T06:26:25.433Z
+url: http://ws.mikoradio.com/
+status: up
+code: 200
+responseTime: 465
+lastUpdated: 2024-06-02T17:08:10.087Z
 startTime: 2023-12-28T13:20:56.855Z
 generator: Upptime <https://github.com/upptime/upptime>
