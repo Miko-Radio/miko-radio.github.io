@@ -31,12 +31,13 @@ jobs:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
         content="${{ steps.fetch_site.outputs.site }}"
-        # Escape double quotes and newlines
-        content=$(echo "$content" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
+        # Escape double quotes and newlines using jq
+        content=$(jq -Rs '.' <<< "$content")
         echo "Sending site content to Discord: $content"
-        wget --header="Content-Type: application/json" \
-             --post-data="{\"embeds\": [{\"title\": \"Site Update\",\"description\": \"$content\",\"color\": 5814783}]}" \
+        curl -H "Content-Type: application/json" \
+             -d "{\"embeds\": [{\"title\": \"Site Update\",\"description\": $content,\"color\": 5814783}]}" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
