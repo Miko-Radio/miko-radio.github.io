@@ -17,54 +17,23 @@ jobs:
       id: fetch_content
       run: |
         site_content=$(curl -s https://miko-radio.github.io/)
-        # Extract relevant information, you can customize this part
-        live_status=$(echo "$site_content" | grep -oP '(?<=<h1>)[^<]+' | head -1)
-        description=$(echo "$site_content" | grep -oP '(?<=<p>)[^<]+' | head -1)
-        badges=$(echo "$site_content" | grep -oP '(?<=<img src=").+?(\.svg)' | head -n 5 | tr '\n' ' ')
-        echo "::set-output name=live_status::$live_status"
-        echo "::set-output name=description::$description"
-        echo "::set-output name=badges::$badges"
+        echo "::set-output name=content::$site_content"
+        echo "Fetched content: $site_content"
 
     - name: Print fetched content for debugging
       run: |
-        echo "Live status: ${{ steps.fetch_content.outputs.live_status }}"
-        echo "Description: ${{ steps.fetch_content.outputs.description }}"
-        echo "Badges: ${{ steps.fetch_content.outputs.badges }}"
+        echo "Fetched content: ${{ steps.fetch_content.outputs.content }}"
 
     - name: Send message to Discord
       run: |
-        live_status="${{ steps.fetch_content.outputs.live_status }}"
-        description="${{ steps.fetch_content.outputs.description }}"
-        badges="${{ steps.fetch_content.outputs.badges }}"
+        content="${{ steps.fetch_content.outputs.content }}"
+        # Escape double quotes and newlines
+        content=$(echo "$content" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
+        echo "Sending content to Discord: $content"
         curl -H "Content-Type: application/json" \
-             -d '{
-                   "embeds": [
-                     {
-                       "title": "New Push to Miko Radio Repository",
-                       "description": "'"${live_status}\n${description}"'",
-                       "color": 5814783,
-                       "fields": [
-                         {
-                           "name": "Repository",
-                           "value": "${{ github.repository }}"
-                         },
-                         {
-                           "name": "Committer",
-                           "value": "${{ github.actor }}"
-                         },
-                         {
-                           "name": "Commit Message",
-                           "value": "${{ github.event.head_commit.message }}"
-                         },
-                         {
-                           "name": "Badges",
-                           "value": "'"${badges}"'"
-                         }
-                       ]
-                     }
-                   ]
-                 }' \
+             -d "{\"embeds\": [{\"title\": \"New Push to Miko Radio Repository\",\"description\": \"$content\",\"color\": 5814783}]}" \
              https://discord.com/api/webhooks/1246657089355513917/RELX_TPIcUu2UN2HHOylZXQSnrqt8HAogJs3xOWMvJJzLoPPnUVsSlW5u62BFkVkrIyD
+
 
 
 
