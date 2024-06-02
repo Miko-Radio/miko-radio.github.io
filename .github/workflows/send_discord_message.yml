@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/25 * * * *'
 
 jobs:
   send-uptime-graph:
@@ -46,7 +46,7 @@ jobs:
                    \"embeds\": [
                      {
                        \"title\": \"Miko Radio Uptime Status Update\",
-                       \"description\": $escaped_content,
+                       \"description\": \"Here is the latest status update for Miko Radio.\",
                        \"color\": 5814783,
                        \"fields\": [
                          {
@@ -97,6 +97,7 @@ jobs:
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
