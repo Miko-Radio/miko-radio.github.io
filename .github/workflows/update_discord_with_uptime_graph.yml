@@ -17,15 +17,20 @@ jobs:
       id: fetch_status
       run: |
         status_content=$(curl -s https://status.mikoradio.com/)
+        echo "Fetched status content: $status_content"
         echo "::set-output name=status::$status_content"
 
     - name: Extract status and graph URL
       id: extract_info
       run: |
         status="${{ steps.fetch_status.outputs.status }}"
+        echo "Status content: $status"
         operational=$(echo "$status" | grep -o 'All systems operational')
         partial=$(echo "$status" | grep -o 'Partial Outage')
         graph_url=$(echo "$status" | grep -oP '(?<=<img src=")[^"]*uptime-graph[^"]*')
+        echo "Operational: $operational"
+        echo "Partial: $partial"
+        echo "Graph URL: $graph_url"
         
         if [[ -n "$operational" ]]; then
           color=3066993 # Green
@@ -47,6 +52,12 @@ jobs:
         echo "::set-output name=color::$color"
         echo "::set-output name=status_text::$status_text"
         echo "::set-output name=graph_url::$graph_url"
+
+    - name: Print extracted information for debugging
+      run: |
+        echo "Embed color: ${{ steps.extract_info.outputs.color }}"
+        echo "Status text: ${{ steps.extract_info.outputs.status_text }}"
+        echo "Graph URL: ${{ steps.extract_info.outputs.graph_url }}"
 
     - name: Send status and graph to Discord
       env:
@@ -70,6 +81,7 @@ jobs:
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
