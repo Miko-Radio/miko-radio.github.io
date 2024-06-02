@@ -17,7 +17,12 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install -y jq pup
+        sudo apt-get update
+        sudo apt-get install -y jq
+        wget https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_linux_amd64.zip
+        unzip pup_linux_amd64.zip
+        sudo mv pup /usr/local/bin/
+        rm pup_linux_amd64.zip
 
     - name: Fetch status page content
       id: fetch_status
@@ -113,6 +118,7 @@ jobs:
         if [ "$response" -ne 204 ]; then
           echo "Failed to send message to Discord"
           exit 1
+
 
    
 
