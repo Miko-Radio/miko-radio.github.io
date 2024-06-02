@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '*/25 * * * *'
+    - cron: '*/5 * * * *'
 
 jobs:
   send-uptime-graph:
@@ -45,9 +45,51 @@ jobs:
              -d "{
                    \"embeds\": [
                      {
-                       \"title\": \"Uptime Status Update\",
+                       \"title\": \"Miko Radio Uptime Status Update\",
                        \"description\": $escaped_content,
                        \"color\": 5814783,
+                       \"fields\": [
+                         {
+                           \"name\": \"Website\",
+                           \"value\": \"[Miko Radio](https://mikoradio.com)\",
+                           \"inline\": true
+                         },
+                         {
+                           \"name\": \"Status Page\",
+                           \"value\": \"[Miko Radio Status](https://status.mikoradio.com)\",
+                           \"inline\": true
+                         },
+                         {
+                           \"name\": \"Latest Uptime Graph\",
+                           \"value\": \"[View Graph]($graph_url)\",
+                           \"inline\": false
+                         },
+                         {
+                           \"name\": \"Uptime\",
+                           \"value\": \"[![Uptime CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Uptime%20CI/badge.svg)](https://github.com/miko-radio/miko-radio.github.io/actions?query=workflow%3A%22Uptime+CI%22)\",
+                           \"inline\": true
+                         },
+                         {
+                           \"name\": \"Response Time\",
+                           \"value\": \"[![Response Time CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Response%20Time%20CI/badge.svg)](https://github.com/miko-radio/miko-radio.github.io/actions?query=workflow%3A%22Response+Time+CI%22)\",
+                           \"inline\": true
+                         },
+                         {
+                           \"name\": \"Graphs\",
+                           \"value\": \"[![Graphs CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Graphs%20CI/badge.svg)](https://github.com/miko-radio/miko-radio.github.io/actions?query=workflow%3A%22Graphs+CI%22)\",
+                           \"inline\": true
+                         },
+                         {
+                           \"name\": \"Static Site\",
+                           \"value\": \"[![Static Site CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Static%20Site%20CI/badge.svg)](https://github.com/miko-radio/miko-radio.github.io/actions?query=workflow%3A%22Static+Site+CI%22)\",
+                           \"inline\": true
+                         },
+                         {
+                           \"name\": \"Summary\",
+                           \"value\": \"[![Summary CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Summary%20CI/badge.svg)](https://github.com/miko-radio/miko-radio.github.io/actions?query=workflow%3A%22Summary+CI%22)\",
+                           \"inline\": true
+                         }
+                       ],
                        \"image\": {
                          \"url\": \"$graph_url\"
                        }
