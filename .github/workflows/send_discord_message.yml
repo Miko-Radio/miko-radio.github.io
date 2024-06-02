@@ -15,36 +15,129 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Fetch README content
-      id: fetch_content
+    - name: Fetch Uptime Content
+      id: fetch_uptime
       run: |
-        readme_content=$(cat README.md)
-        echo "::set-output name=content::$readme_content"
-        echo "Fetched README content: $readme_content"
+        uptime_content=$(cat /mnt/data/uptime.yml)
+        echo "::set-output name=uptime::$uptime_content"
+        echo "Fetched Uptime content: $uptime_content"
+
+    - name: Fetch Updates Content
+      id: fetch_updates
+      run: |
+        updates_content=$(cat /mnt/data/updates.yml)
+        echo "::set-output name=updates::$updates_content"
+        echo "Fetched Updates content: $updates_content"
+
+    - name: Fetch Site Content
+      id: fetch_site
+      run: |
+        site_content=$(cat /mnt/data/site.yml)
+        echo "::set-output name=site::$site_content"
+        echo "Fetched Site content: $site_content"
+
+    - name: Fetch Graphs Content
+      id: fetch_graphs
+      run: |
+        graphs_content=$(cat /mnt/data/graphs.yml)
+        echo "::set-output name=graphs::$graphs_content"
+        echo "Fetched Graphs content: $graphs_content"
+
+    - name: Fetch Setup Content
+      id: fetch_setup
+      run: |
+        setup_content=$(cat /mnt/data/setup.yml)
+        echo "::set-output name=setup::$setup_content"
+        echo "Fetched Setup content: $setup_content"
+
+    - name: Fetch Response Time Content
+      id: fetch_response_time
+      run: |
+        response_time_content=$(cat /mnt/data/response-time.yml)
+        echo "::set-output name=response_time::$response_time_content"
+        echo "Fetched Response Time content: $response_time_content"
 
     - name: Print fetched content for debugging
       run: |
-        echo "Fetched README content: ${{ steps.fetch_content.outputs.content }}"
+        echo "Fetched Uptime content: ${{ steps.fetch_uptime.outputs.uptime }}"
+        echo "Fetched Updates content: ${{ steps.fetch_updates.outputs.updates }}"
+        echo "Fetched Site content: ${{ steps.fetch_site.outputs.site }}"
+        echo "Fetched Graphs content: ${{ steps.fetch_graphs.outputs.graphs }}"
+        echo "Fetched Setup content: ${{ steps.fetch_setup.outputs.setup }}"
+        echo "Fetched Response Time content: ${{ steps.fetch_response_time.outputs.response_time }}"
 
-    - name: Send README to Discord
+    - name: Send Uptime to Discord
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
-        content="${{ steps.fetch_content.outputs.content }}"
+        uptime_content="${{ steps.fetch_uptime.outputs.uptime }}"
         # Escape double quotes and newlines
-        content=$(echo "$content" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
-        echo "Sending README content to Discord: $content"
+        uptime_content=$(echo "$uptime_content" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
+        echo "Sending Uptime content to Discord: $uptime_content"
         curl -H "Content-Type: application/json" \
-             -d "{\"embeds\": [{\"title\": \"README Update\",\"description\": \"$content\",\"color\": 5814783}]}" \
+             -d "{\"embeds\": [{\"title\": \"Uptime Update\",\"description\": \"$uptime_content\",\"color\": 5814783}]}" \
              $DISCORD_WEBHOOK_URL
 
-    - name: Send message to other webhook
+    - name: Send Updates to Discord
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
-        site_content=$(curl -s https://miko-radio.github.io/)
-        echo "Sending site content to the other webhook: $site_content"
+        updates_content="${{ steps.fetch_updates.outputs.updates }}"
+        # Escape double quotes and newlines
+        updates_content=$(echo "$updates_content" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
+        echo "Sending Updates content to Discord: $updates_content"
         curl -H "Content-Type: application/json" \
-             -d "{\"embeds\": [{\"title\": \"Update to Miko Radio Repository\",\"description\": \"$site_content\",\"color\": 5814783}]}" \
-             https://discord.com/api/webhooks/1189802524123877456/LHiCOQesQH76ky9zPT_6adK5MDQ8rwnBx8Zq6SlG4IDP2GASaeO-zSr_0_dSp-KkApcY/github
+             -d "{\"embeds\": [{\"title\": \"Updates\",\"description\": \"$updates_content\",\"color\": 5814783}]}" \
+             $DISCORD_WEBHOOK_URL
+
+    - name: Send Site Content to Discord
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: |
+        site_content="${{ steps.fetch_site.outputs.site }}"
+        # Escape double quotes and newlines
+        site_content=$(echo "$site_content" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
+        echo "Sending Site content to Discord: $site_content"
+        curl -H "Content-Type: application/json" \
+             -d "{\"embeds\": [{\"title\": \"Site Update\",\"description\": \"$site_content\",\"color\": 5814783}]}" \
+             $DISCORD_WEBHOOK_URL
+
+    - name: Send Graphs Content to Discord
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: |
+        graphs_content="${{ steps.fetch_graphs.outputs.graphs }}"
+        # Escape double quotes and newlines
+        graphs_content=$(echo "$graphs_content" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
+        echo "Sending Graphs content to Discord: $graphs_content"
+        curl -H "Content-Type: application/json" \
+             -d "{\"embeds\": [{\"title\": \"Graphs Update\",\"description\": \"$graphs_content\",\"color\": 5814783}]}" \
+             $DISCORD_WEBHOOK_URL
+
+    - name: Send Setup Content to Discord
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: |
+        setup_content="${{ steps.fetch_setup.outputs.setup }}"
+        # Escape double quotes and newlines
+        setup_content=$(echo "$setup_content" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
+        echo "Sending Setup content to Discord: $setup_content"
+        curl -H "Content-Type: application/json" \
+             -d "{\"embeds\": [{\"title\": \"Setup Update\",\"description\": \"$setup_content\",\"color\": 5814783}]}" \
+             $DISCORD_WEBHOOK_URL
+
+    - name: Send Response Time Content to Discord
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: |
+        response_time_content="${{ steps.fetch_response_time.outputs.response_time }}"
+        # Escape double quotes and newlines
+        response_time_content=$(echo "$response_time_content" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
+        echo "Sending Response Time content to Discord: $response_time_content"
+        curl -H "Content-Type: application/json" \
+             -d "{\"embeds\": [{\"title\": \"Response Time Update\",\"description\": \"$response_time_content\",\"color\": 5814783}]}" \
+             $DISCORD_WEBHOOK_URL
+
 
 
 
