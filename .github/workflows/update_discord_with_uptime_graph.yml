@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '*/2 * * * *'
+    - cron: '*/1 * * * *'
 
 jobs:
   send_discord_message:
@@ -15,53 +15,66 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Fetch README content
-      id: fetch_readme
-      run: |
-        readme_content=$(cat README.md)
-        echo "::set-output name=content::$readme_content"
-    
-    - name: Fetch latest uptime graph
-      id: fetch_graph
-      run: |
-        graph_url="https://raw.githubusercontent.com/${{ github.repository }}/HEAD/graphs/uptime-graph.svg"
-        echo "::set-output name=graph_url::$graph_url"
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
 
-    - name: Determine Status and Set Embed Color
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install matplotlib numpy
+
+    - name: Fetch uptime data
+      id: fetch_uptime
+      run: |
+        curl -s https://raw.githubusercontent.com/${{ github.repository }}/HEAD/history/miko.yml > miko.yml
+        uptime_data=$(cat miko.yml | grep uptime | sed 's/uptime: //g')
+        echo "::set-output name=uptime_data::$uptime_data"
+
+    - name: Determine Status and Generate Graph
       id: determine_status
       run: |
-        # Example: Fetch the status of the site from the README or another source
+        uptime_data="${{ steps.fetch_uptime.outputs.uptime_data }}"
         if grep -q "All systems operational" README.md; then
-          echo "::set-output name=color::3066993" # Green for online
+          status="operational"
         elif grep -q "Partial Outage" README.md; then
-          echo "::set-output name=color::15105570" # Orange for partial outage
+          status="partial"
         else
-          echo "::set-output name=color::15158332" # Red for outage
-        fi
+          status="outage"
+        python generate_uptime_graph.py $status uptime_graph.png
+
+    - name: Upload graph to repository
+      uses: actions/upload-artifact@v2
+      with:
+        name: uptime-graph
+        path: uptime_graph.png
+
+    - name: Fetch latest uptime graph URL
+      id: fetch_graph
+      run: |
+        graph_url="https://github.com/${{ github.repository }}/raw/main/uptime_graph.png"
+        echo "::set-output name=graph_url::$graph_url"
 
     - name: Print fetched content for debugging
       run: |
-        echo "Fetched README content: ${{ steps.fetch_readme.outputs.content }}"
         echo "Uptime graph URL: ${{ steps.fetch_graph.outputs.graph_url }}"
-        echo "Embed color: ${{ steps.determine_status.outputs.color }}"
+        echo "Embed color: ${{ steps.determine_status.outputs.status }}"
 
     - name: Send site content and graph to Discord
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
-        content="${{ steps.fetch_readme.outputs.content }}"
         graph_url="${{ steps.fetch_graph.outputs.graph_url }}"
-        color="${{ steps.determine_status.outputs.color }}"
-        # Properly escape the fetched content
-        escaped_content=$(echo "$content" | jq -Rs .)
-        echo "Sending README content and uptime graph to Discord"
+        color="${{ steps.determine_status.outputs.status }}"
+        echo "Sending uptime graph to Discord"
         curl -H "Content-Type: application/json" \
              -d "{
                    \"embeds\": [
                      {
                        \"title\": \"Miko Radio Uptime Status Update\",
-                       \"description\": $escaped_content,
-                       \"color\": $color,
+                       \"description\": \"Here is the latest status update for Miko Radio.\",
+                       \"color\": 5814783,
                        \"image\": {
                          \"url\": \"$graph_url\"
                        }
@@ -69,6 +82,7 @@ jobs:
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
