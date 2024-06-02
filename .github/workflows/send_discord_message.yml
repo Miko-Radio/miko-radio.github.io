@@ -15,28 +15,27 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Fetch site content
+    - name: Fetch README content
       id: fetch_content
       run: |
-        site_content=$(curl -s https://miko-radio.github.io/)
-        live_status=$(echo "$site_content" | grep -oP '(?<=<h1>)[^<]+') # Adjust the grep pattern based on actual HTML structure
-        echo "::set-output name=live_status::$live_status"
-        echo "Fetched live status: $live_status"
+        readme_content=$(cat README.md)
+        echo "::set-output name=content::$readme_content"
+        echo "Fetched README content: $readme_content"
 
     - name: Print fetched content for debugging
       run: |
-        echo "Fetched live status: ${{ steps.fetch_content.outputs.live_status }}"
+        echo "Fetched README content: ${{ steps.fetch_content.outputs.content }}"
 
-    - name: Send live status to Discord
+    - name: Send README to Discord
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
-        live_status="${{ steps.fetch_content.outputs.live_status }}"
+        content="${{ steps.fetch_content.outputs.content }}"
         # Escape double quotes and newlines
-        live_status=$(echo "$live_status" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
-        echo "Sending live status to Discord: $live_status"
+        content=$(echo "$content" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
+        echo "Sending README content to Discord: $content"
         curl -H "Content-Type: application/json" \
-             -d "{\"embeds\": [{\"title\": \"Live Status Update\",\"description\": \"$live_status\",\"color\": 5814783}]}" \
+             -d "{\"embeds\": [{\"title\": \"README Update\",\"description\": \"$content\",\"color\": 5814783}]}" \
              $DISCORD_WEBHOOK_URL
 
     - name: Send message to other webhook
@@ -46,6 +45,7 @@ jobs:
         curl -H "Content-Type: application/json" \
              -d "{\"embeds\": [{\"title\": \"Update to Miko Radio Repository\",\"description\": \"$site_content\",\"color\": 5814783}]}" \
              https://discord.com/api/webhooks/1189802524123877456/LHiCOQesQH76ky9zPT_6adK5MDQ8rwnBx8Zq6SlG4IDP2GASaeO-zSr_0_dSp-KkApcY/github
+
 
 
 
