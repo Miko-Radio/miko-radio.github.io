@@ -1,6 +1,6 @@
 # [📈 Live Status](https://status.mikoradio.com): <!--live status--> **🟧 Partial outage**
 
-This repository contains the open-source uptime monitor and status page for [Miko Radio](https://status.mikoradio.com), powered by [Upptime](https://github.com/upptime/upptime).
+This repository contains the open-source uptime monitor and status page for [Miko Radio]([https://status.mikoradio.com](https://miko-radio.github.io/)), powered by [Upptime](https://github.com/upptime/upptime).
 
 [![Uptime CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Uptime%20CI/badge.svg)](https://github.com/miko-radio/miko-radio.github.io/actions?query=workflow%3A%22Uptime+CI%22)
 [![Response Time CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Response%20Time%20CI/badge.svg)](https://github.com/miko-radio/miko-radio.github.io/actions?query=workflow%3A%22Response+Time+CI%22)
