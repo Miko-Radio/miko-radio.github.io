@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-  schedule:
-    - cron: '*/25 * * * *'
 
 jobs:
   send_discord_message:
@@ -72,6 +70,7 @@ jobs:
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
