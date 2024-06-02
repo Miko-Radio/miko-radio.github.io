@@ -5,46 +5,89 @@ on:
     branches:
       - main
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '* * * * *'
 
 jobs:
-  send-discord-message:
+  send_discord_message:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Fetch README content
-      id: fetch_content
+    - name: Fetch status page content
+      id: fetch_status
       run: |
-        readme_content=$(cat README.md)
-        echo "::set-output name=content::$readme_content"
-        echo "Fetched README content: $readme_content"
+        status_content=$(curl -s https://status.mikoradio.com/)
+        echo "::set-output name=status::$status_content"
 
-    - name: Print fetched content for debugging
+    - name: Extract status and graph URL
+      id: extract_info
       run: |
-        echo "Fetched README content: ${{ steps.fetch_content.outputs.content }}"
+        status="${{ steps.fetch_status.outputs.status }}"
+        echo "Status content: $status"
+        operational=$(echo "$status" | grep -o 'All systems operational')
+        partial=$(echo "$status" | grep -o 'Partial Outage')
+        graph_url=$(echo "$status" | grep -oP '(?<=<img src=")[^"]*uptime-graph[^"]*')
+        echo "Operational: $operational"
+        echo "Partial: $partial"
+        echo "Graph URL: $graph_url"
+        
+        if [[ -n "$operational" ]]; then
+          color=3066993 # Green
+          status_text="All systems operational"
+        elif [[ -n "$partial" ]]; then
+          color=15105570 # Orange
+          status_text="Partial Outage"
+        else
+          color=15158332 # Red
+          status_text="Outage detected"
+        fi
 
-    - name: Send README to Discord
+        if [[ -z "$graph_url" ]]; then
+          graph_url="https://via.placeholder.com/600x400.png?text=No+Graph+Available"
+        else
+          graph_url="https://status.mikoradio.com/$graph_url"
+        fi
+
+        echo "::set-output name=color::$color"
+        echo "::set-output name=status_text::$status_text"
+        echo "::set-output name=graph_url::$graph_url"
+
+    - name: Print extracted information for debugging
+      run: |
+        echo "Embed color: ${{ steps.extract_info.outputs.color }}"
+        echo "Status text: ${{ steps.extract_info.outputs.status_text }}"
+        echo "Graph URL: ${{ steps.extract_info.outputs.graph_url }}"
+
+    - name: Send status and graph to Discord
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
-        content="${{ steps.fetch_content.outputs.content }}"
-        # Escape double quotes and newlines
-        content=$(echo "$content" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/ /g')
-        echo "Sending README content to Discord: $content"
-        curl -H "Content-Type: application/json" \
-             -d "{\"embeds\": [{\"title\": \"README Update\",\"description\": \"$content\",\"color\": 5814783}]}" \
-             $DISCORD_WEBHOOK_URL
+        color="${{ steps.extract_info.outputs.color }}"
+        status_text="${{ steps.extract_info.outputs.status_text }}"
+        graph_url="${{ steps.extract_info.outputs.graph_url }}"
+        echo "Sending status and graph to Discord"
+        response=$(curl -s -o /dev/null -w "%{http_code}" -H "Content-Type: application/json" \
+             -d "{
+                   \"embeds\": [
+                     {
+                       \"title\": \"Miko Radio Uptime Status Update\",
+                       \"description\": \"$status_text\",
+                       \"color\": $color,
+                       \"image\": {
+                         \"url\": \"$graph_url\"
+                       }
+                     }
+                   ]
+                 }" \
+             $DISCORD_WEBHOOK_URL)
+        echo "Discord response status code: $response"
+        if [ "$response" -ne 204 ]; then
+          echo "Failed to send message to Discord"
+          exit 1
+        fi
 
-    - name: Send message to other webhook
-      run: |
-        site_content=$(curl -s https://status.mikoradio.com/)
-        echo "Sending site content to the other webhook: $site_content"
-        curl -H "Content-Type: application/json" \
-             -d "{\"embeds\": [{\"title\": \"Update to Miko Radio Repository\",\"description\": \"$site_content\",\"color\": 5814783}]}" \
-             https://discord.com/api/webhooks/1189802524123877456/LHiCOQesQH76ky9zPT_6adK5MDQ8rwnBx8Zq6SlG4IDP2GASaeO-zSr_0_dSp-KkApcY/github
 
 
 
