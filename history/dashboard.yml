@@ -1,7 +1,7 @@
-url: http://45.144.225.88:42027
-status: down
-code: 0
-responseTime: 0
-lastUpdated: 2024-06-01T23:10:01.593Z
+url: http://panel.mikoradio.com:4001/
+status: up
+code: 200
+responseTime: 175
+lastUpdated: 2024-06-02T02:37:48.880Z
 startTime: 2023-12-28T13:20:56.855Z
 generator: Upptime <https://github.com/upptime/upptime>
