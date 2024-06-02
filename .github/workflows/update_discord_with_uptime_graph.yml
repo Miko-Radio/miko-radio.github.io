@@ -29,9 +29,11 @@ jobs:
         echo "Status content: $status"
         operational=$(echo "$status" | grep -o 'All systems operational' || true)
         partial=$(echo "$status" | grep -o 'Partial Outage' || true)
+        outage=$(echo "$status" | grep -o 'Outage detected' || true)
         graph_url=$(echo "$status" | grep -oP '(?<=<img src=")[^"]*uptime-graph[^"]*' || true)
         echo "Operational: $operational"
         echo "Partial: $partial"
+        echo "Outage: $outage"
         echo "Graph URL: $graph_url"
         
         if [[ -n "$operational" ]]; then
@@ -40,9 +42,12 @@ jobs:
         elif [[ -n "$partial" ]]; then
           color=15105570 # Orange
           status_text="Partial Outage"
-        else
+        elif [[ -n "$outage" ]]; then
           color=15158332 # Red
           status_text="Outage detected"
+        else
+          color=15158332 # Red
+          status_text="Status unknown"
         fi
 
         if [[ -z "$graph_url" ]]; then
@@ -76,6 +81,23 @@ jobs:
                        \"title\": \"Miko Radio Uptime Status Update\",
                        \"description\": \"**Website**: [Miko Radio](https://mikoradio.com)\n**Status Page**: [Miko Radio Status](https://status.mikoradio.com)\n\n**Summary**: $status_text\",
                        \"color\": $color,
+                       \"fields\": [
+                         {
+                           \"name\": \"Current Status\",
+                           \"value\": \"$status_text\",
+                           \"inline\": true
+                         },
+                         {
+                           \"name\": \"Website\",
+                           \"value\": \"[Miko Radio](https://mikoradio.com)\",
+                           \"inline\": true
+                         },
+                         {
+                           \"name\": \"Status Page\",
+                           \"value\": \"[Miko Radio Status](https://status.mikoradio.com)\",
+                           \"inline\": true
+                         }
+                       ],
                        \"image\": {
                          \"url\": \"$graph_url\"
                        }
@@ -85,9 +107,8 @@ jobs:
              $DISCORD_WEBHOOK_URL)
         echo "Discord response status code: $response"
         if [ "$response" -ne 204 ]; then
-          echo "Failed to send message to Discord"
-          exit 1
-        fi
+   
+
 
 
 
