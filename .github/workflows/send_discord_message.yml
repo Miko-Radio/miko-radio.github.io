@@ -20,7 +20,6 @@ jobs:
       run: |
         site_content=$(wget -qO- https://miko-radio.github.io/)
         echo "::set-output name=site::$site_content"
-        echo "Fetched site content: $site_content"
 
     - name: Print fetched content for debugging
       run: |
@@ -37,6 +36,7 @@ jobs:
         curl -H "Content-Type: application/json" \
              -d "{\"embeds\": [{\"title\": \"Site Update\",\"description\": $content,\"color\": 5814783}]}" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
