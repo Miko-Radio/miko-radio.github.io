@@ -6,7 +6,7 @@ sites:
   - name: miko
     url: https://mikoradio.com/
   - name: Dashboard
-    url: http://45.144.225.88:42027
+    url: http://panel.mikoradio.com:4001/
   - name: korivash
     url: https://www.korivash.com/
 
