@@ -16,66 +16,45 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y jq
-        wget https://github.com/mgdm/htmlq/releases/download/v0.4.0/htmlq-v0.4.0-linux-x86_64.tar.gz
-        tar xzf htmlq-v0.4.0-linux-x86_64.tar.gz
-        sudo mv htmlq /usr/local/bin/
-        rm htmlq-v0.4.0-linux-x86_64.tar.gz
+      run: sudo apt-get install -y jq
 
-    - name: Fetch status page content
-      id: fetch_status
+    - name: Fetch README content
+      id: fetch_readme
       run: |
-        status_content=$(curl -s https://status.mikoradio.com/)
-        echo "Fetched status content: $status_content"
-        echo "::set-output name=status::$status_content"
+        readme_content=$(cat README.md)
+        echo "::set-output name=content::$readme_content"
 
-    - name: Extract status and graph URL
+    - name: Extract uptime status and graph
       id: extract_info
       run: |
-        status="${{ steps.fetch_status.outputs.status }}"
-        echo "Status content: $status"
-        operational=$(echo "$status" | grep -o 'All systems operational' || true)
-        partial=$(echo "$status" | grep -o 'Partial Outage' || true)
-        outage=$(echo "$status" | grep -o 'Outage detected' || true)
-        graph_url=$(echo "$status" | htmlq -a 'img[src*="uptime-graph"]' src | head -n 1 || true)
-        echo "Operational: $operational"
-        echo "Partial: $partial"
-        echo "Outage: $outage"
-        echo "Graph URL: $graph_url"
-        
-        if [[ -n "$operational" ]]; then
+        content="${{ steps.fetch_readme.outputs.content }}"
+        status=$(echo "$content" | grep -oP '(?<=<!--live status--> ).*')
+        graph_url=$(echo "$content" | grep -oP '(?<=!\[Uptime Graph\]\().*(?=\))')
+        uptime_status="Status unknown"
+        color=15158332
+
+        if [[ "$status" == *"All systems operational"* ]]; then
+          uptime_status="All systems operational"
           color=3066993 # Green
-          status_text="All systems operational"
-        elif [[ -n "$partial" ]]; then
+        elif [[ "$status" == *"Partial Outage"* ]]; then
+          uptime_status="Partial Outage"
           color=15105570 # Orange
-          status_text="Partial Outage"
-        elif [[ -n "$outage" ]]; then
+        elif [[ "$status" == *"Outage detected"* ]]; then
+          uptime_status="Outage detected"
           color=15158332 # Red
-          status_text="Outage detected"
-        else
-          color=15158332 # Red
-          status_text="Status unknown"
         fi
 
-        if [[ -z "$graph_url" ]]; then
-          graph_url="https://via.placeholder.com/600x400.png?text=No+Graph+Available"
-        else
-          graph_url="https://status.mikoradio.com/$graph_url"
-        fi
-
-        echo "::set-output name=color::$color"
-        echo "::set-output name=status_text::$status_text"
+        echo "::set-output name=status_text::$uptime_status"
         echo "::set-output name=graph_url::$graph_url"
+        echo "::set-output name=color::$color"
 
     - name: Print extracted information for debugging
       run: |
+        echo "Uptime status: ${{ steps.extract_info.outputs.status_text }}"
+        echo "Uptime graph URL: ${{ steps.extract_info.outputs.graph_url }}"
         echo "Embed color: ${{ steps.extract_info.outputs.color }}"
-        echo "Status text: ${{ steps.extract_info.outputs.status_text }}"
-        echo "Graph URL: ${{ steps.extract_info.outputs.graph_url }}"
 
-    - name: Send status and graph to Discord
+    - name: Send site content and graph to Discord
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
@@ -83,19 +62,14 @@ jobs:
         status_text="${{ steps.extract_info.outputs.status_text }}"
         graph_url="${{ steps.extract_info.outputs.graph_url }}"
         echo "Sending status and graph to Discord"
-        response=$(curl -s -o /dev/null -w "%{http_code}" -H "Content-Type: application/json" \
+        curl -H "Content-Type: application/json" \
              -d "{
                    \"embeds\": [
                      {
                        \"title\": \"Miko Radio Uptime Status Update\",
-                       \"description\": \"**Website**: [Miko Radio](https://mikoradio.com)\n**Status Page**: [Miko Radio Status](https://status.mikoradio.com)\n\n**Summary**: $status_text\",
+                       \"description\": \"Here is the latest status update for Miko Radio.\",
                        \"color\": $color,
                        \"fields\": [
-                         {
-                           \"name\": \"Current Status\",
-                           \"value\": \"$status_text\",
-                           \"inline\": true
-                         },
                          {
                            \"name\": \"Website\",
                            \"value\": \"[Miko Radio](https://mikoradio.com)\",
@@ -105,6 +79,11 @@ jobs:
                            \"name\": \"Status Page\",
                            \"value\": \"[Miko Radio Status](https://status.mikoradio.com)\",
                            \"inline\": true
+                         },
+                         {
+                           \"name\": \"Summary\",
+                           \"value\": \"$status_text\",
+                           \"inline\": false
                          }
                        ],
                        \"image\": {
@@ -113,11 +92,8 @@ jobs:
                      }
                    ]
                  }" \
-             $DISCORD_WEBHOOK_URL)
-        echo "Discord response status code: $response"
-        if [ "$response" -ne 204 ]; then
-          echo "Failed to send message to Discord"
-          exit 1
+             $DISCORD_WEBHOOK_URL
+
 
 
 
