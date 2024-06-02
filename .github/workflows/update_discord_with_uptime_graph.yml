@@ -1,9 +1,9 @@
 name: Update Discord with Uptime Graph
 
 on:
-  push:
-    branches:
-      - main
+  check_run:
+    types: [completed]
+  workflow_dispatch:
 
 jobs:
   send_discord_message:
@@ -81,6 +81,7 @@ jobs:
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
