@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '* * * * *'
 
 jobs:
   send-discord-message:
@@ -45,6 +45,7 @@ jobs:
         curl -H "Content-Type: application/json" \
              -d "{\"embeds\": [{\"title\": \"Update to Miko Radio Repository\",\"description\": \"$site_content\",\"color\": 5814783}]}" \
              https://discord.com/api/webhooks/1189802524123877456/LHiCOQesQH76ky9zPT_6adK5MDQ8rwnBx8Zq6SlG4IDP2GASaeO-zSr_0_dSp-KkApcY/github
+
 
 
 
