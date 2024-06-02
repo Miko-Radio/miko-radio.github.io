@@ -1,7 +1,7 @@
 url: http://ws.mikoradio.com/
-status: down
-code: 502
-responseTime: 140
-lastUpdated: 2024-06-02T18:32:12.331Z
+status: up
+code: 200
+responseTime: 41
+lastUpdated: 2024-06-02T18:41:56.069Z
 startTime: 2023-12-28T13:20:56.855Z
 generator: Upptime <https://github.com/upptime/upptime>
