@@ -1,4 +1,4 @@
-name: Update Discord Message
+name: Update Discord with Uptime Graph
 
 on:
   push:
@@ -8,44 +8,44 @@ on:
     - cron: '*/5 * * * *'
 
 jobs:
-  send-discord-message:
+  send-uptime-graph:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Fetch site content
-      id: fetch_site
+    - name: Fetch README content
+      id: fetch_readme
       run: |
-        site_content=$(wget -qO- https://miko-radio.github.io/)
-        echo "::set-output name=site::$site_content"
-
-    - name: Fetch uptime graph
+        readme_content=$(cat README.md)
+        echo "::set-output name=content::$readme_content"
+    
+    - name: Fetch latest uptime graph
       id: fetch_graph
       run: |
-        graph_url="https://miko-radio.github.io/graphs/uptime-graph.png"
+        graph_url="https://raw.githubusercontent.com/${{ github.repository }}/HEAD/graphs/uptime-graph.svg"
         echo "::set-output name=graph_url::$graph_url"
 
     - name: Print fetched content for debugging
       run: |
-        echo "Fetched site content: ${{ steps.fetch_site.outputs.site }}"
+        echo "Fetched README content: ${{ steps.fetch_readme.outputs.content }}"
         echo "Uptime graph URL: ${{ steps.fetch_graph.outputs.graph_url }}"
 
-    - name: Send site content to Discord
+    - name: Send site content and graph to Discord
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
-        content="${{ steps.fetch_site.outputs.site }}"
+        content="${{ steps.fetch_readme.outputs.content }}"
         graph_url="${{ steps.fetch_graph.outputs.graph_url }}"
-        # Properly escape the fetched HTML content
+        # Properly escape the fetched content
         escaped_content=$(echo "$content" | jq -Rsa .)
-        echo "Sending site content to Discord: $escaped_content"
+        echo "Sending README content and uptime graph to Discord"
         curl -H "Content-Type: application/json" \
              -d "{
                    \"embeds\": [
                      {
-                       \"title\": \"Site Update\",
+                       \"title\": \"Uptime Status Update\",
                        \"description\": $escaped_content,
                        \"color\": 5814783,
                        \"image\": {
@@ -55,6 +55,7 @@ jobs:
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
