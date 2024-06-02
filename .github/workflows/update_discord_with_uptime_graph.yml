@@ -27,9 +27,9 @@ jobs:
       run: |
         status="${{ steps.fetch_status.outputs.status }}"
         echo "Status content: $status"
-        operational=$(echo "$status" | grep -o 'All systems operational')
-        partial=$(echo "$status" | grep -o 'Partial Outage')
-        graph_url=$(echo "$status" | grep -oP '(?<=<img src=")[^"]*uptime-graph[^"]*')
+        operational=$(echo "$status" | grep -o 'All systems operational' || true)
+        partial=$(echo "$status" | grep -o 'Partial Outage' || true)
+        graph_url=$(echo "$status" | grep -oP '(?<=<img src=")[^"]*uptime-graph[^"]*' || true)
         echo "Operational: $operational"
         echo "Partial: $partial"
         echo "Graph URL: $graph_url"
@@ -74,25 +74,8 @@ jobs:
                    \"embeds\": [
                      {
                        \"title\": \"Miko Radio Uptime Status Update\",
-                       \"description\": \"Here is the latest status update for Miko Radio.\",
+                       \"description\": \"**Website**: [Miko Radio](https://mikoradio.com)\n**Status Page**: [Miko Radio Status](https://status.mikoradio.com)\n\n**Summary**: $status_text\",
                        \"color\": $color,
-                       \"fields\": [
-                         {
-                           \"name\": \"Website\",
-                           \"value\": \"[Miko Radio](https://mikoradio.com)\",
-                           \"inline\": true
-                         },
-                         {
-                           \"name\": \"Status Page\",
-                           \"value\": \"[Miko Radio Status](https://status.mikoradio.com)\",
-                           \"inline\": true
-                         },
-                         {
-                           \"name\": \"Summary\",
-                           \"value\": \"$status_text\",
-                           \"inline\": false
-                         }
-                       ],
                        \"image\": {
                          \"url\": \"$graph_url\"
                        }
@@ -105,6 +88,7 @@ jobs:
           echo "Failed to send message to Discord"
           exit 1
         fi
+
 
 
 
