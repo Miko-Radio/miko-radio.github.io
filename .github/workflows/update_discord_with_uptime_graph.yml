@@ -67,7 +67,7 @@ jobs:
         status_text="${{ steps.extract_info.outputs.status_text }}"
         graph_url="${{ steps.extract_info.outputs.graph_url }}"
         echo "Sending status and graph to Discord"
-        curl -H "Content-Type: application/json" \
+        response=$(curl -s -o /dev/null -w "%{http_code}" -H "Content-Type: application/json" \
              -d "{
                    \"embeds\": [
                      {
@@ -80,7 +80,13 @@ jobs:
                      }
                    ]
                  }" \
-             $DISCORD_WEBHOOK_URL
+             $DISCORD_WEBHOOK_URL)
+        echo "Discord response status code: $response"
+        if [ "$response" -ne 204 ]; then
+          echo "Failed to send message to Discord"
+          exit 1
+        fi
+
 
 
 
