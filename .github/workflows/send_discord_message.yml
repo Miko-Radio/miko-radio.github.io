@@ -13,15 +13,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Fetch README content
-      id: readme
+    - name: Fetch site content
+      id: fetch_content
       run: |
-        readme_content=$(cat README.md | head -n 40)
-        echo "::set-output name=content::$readme_content"
+        site_content=$(curl -s https://miko-radio.github.io/ | head -n 40)
+        echo "::set-output name=content::$site_content"
 
     - name: Send message to Discord
       run: |
-        content="${{ steps.readme.outputs.content }}"
+        content="${{ steps.fetch_content.outputs.content }}"
+        content=$(echo "$content" | sed 's/"/\\"/g' | sed "s/'/\\'/g")
         curl -H "Content-Type: application/json" \
              -d '{
                    "embeds": [
@@ -47,6 +48,7 @@ jobs:
                    ]
                  }' \
              https://discord.com/api/webhooks/1246657089355513917/RELX_TPIcUu2UN2HHOylZXQSnrqt8HAogJs3xOWMvJJzLoPPnUVsSlW5u62BFkVkrIyD
+
 
 
 
