@@ -19,10 +19,10 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y jq
-        wget https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_linux_amd64.zip
-        unzip pup_linux_amd64.zip
-        sudo mv pup /usr/local/bin/
-        rm pup_linux_amd64.zip
+        wget https://github.com/mgdm/htmlq/releases/download/v0.4.0/htmlq-v0.4.0-x86_64-unknown-linux-musl.tar.gz
+        tar xzf htmlq-v0.4.0-x86_64-unknown-linux-musl.tar.gz
+        sudo mv htmlq /usr/local/bin/
+        rm htmlq-v0.4.0-x86_64-unknown-linux-musl.tar.gz
 
     - name: Fetch status page content
       id: fetch_status
@@ -39,7 +39,7 @@ jobs:
         operational=$(echo "$status" | grep -o 'All systems operational' || true)
         partial=$(echo "$status" | grep -o 'Partial Outage' || true)
         outage=$(echo "$status" | grep -o 'Outage detected' || true)
-        graph_url=$(echo "$status" | pup 'img[src*="uptime-graph"] attr{src}' | head -n 1 || true)
+        graph_url=$(echo "$status" | htmlq -a 'img[src*="uptime-graph"]' src | head -n 1 || true)
         echo "Operational: $operational"
         echo "Partial: $partial"
         echo "Outage: $outage"
@@ -118,6 +118,7 @@ jobs:
         if [ "$response" -ne 204 ]; then
           echo "Failed to send message to Discord"
           exit 1
+
 
 
    
