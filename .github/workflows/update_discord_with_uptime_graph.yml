@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '*/1 * * * *'
+    - cron: '*/25 * * * *'
 
 jobs:
   send_discord_message:
@@ -15,66 +15,56 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-
-    - name: Install dependencies
+    - name: Fetch status page content
+      id: fetch_status
       run: |
-        python -m pip install --upgrade pip
-        pip install matplotlib numpy
+        status_content=$(curl -s https://status.mikoradio.com/)
+        echo "::set-output name=status::$status_content"
 
-    - name: Fetch uptime data
-      id: fetch_uptime
+    - name: Extract status and graph URL
+      id: extract_info
       run: |
-        curl -s https://raw.githubusercontent.com/${{ github.repository }}/HEAD/history/miko.yml > miko.yml
-        uptime_data=$(cat miko.yml | grep uptime | sed 's/uptime: //g')
-        echo "::set-output name=uptime_data::$uptime_data"
-
-    - name: Determine Status and Generate Graph
-      id: determine_status
-      run: |
-        uptime_data="${{ steps.fetch_uptime.outputs.uptime_data }}"
-        if grep -q "All systems operational" README.md; then
-          status="operational"
-        elif grep -q "Partial Outage" README.md; then
-          status="partial"
+        status="${{ steps.fetch_status.outputs.status }}"
+        operational=$(echo "$status" | grep -o 'All systems operational')
+        partial=$(echo "$status" | grep -o 'Partial Outage')
+        graph_url=$(echo "$status" | grep -oP '(?<=<img src=")[^"]*uptime-graph[^"]*')
+        
+        if [[ -n "$operational" ]]; then
+          color=3066993 # Green
+          status_text="All systems operational"
+        elif [[ -n "$partial" ]]; then
+          color=15105570 # Orange
+          status_text="Partial Outage"
         else
-          status="outage"
-        python generate_uptime_graph.py $status uptime_graph.png
+          color=15158332 # Red
+          status_text="Outage detected"
+        fi
 
-    - name: Upload graph to repository
-      uses: actions/upload-artifact@v2
-      with:
-        name: uptime-graph
-        path: uptime_graph.png
+        if [[ -z "$graph_url" ]]; then
+          graph_url="https://via.placeholder.com/600x400.png?text=No+Graph+Available"
+        else
+          graph_url="https://status.mikoradio.com/$graph_url"
+        fi
 
-    - name: Fetch latest uptime graph URL
-      id: fetch_graph
-      run: |
-        graph_url="https://github.com/${{ github.repository }}/raw/main/uptime_graph.png"
+        echo "::set-output name=color::$color"
+        echo "::set-output name=status_text::$status_text"
         echo "::set-output name=graph_url::$graph_url"
 
-    - name: Print fetched content for debugging
-      run: |
-        echo "Uptime graph URL: ${{ steps.fetch_graph.outputs.graph_url }}"
-        echo "Embed color: ${{ steps.determine_status.outputs.status }}"
-
-    - name: Send site content and graph to Discord
+    - name: Send status and graph to Discord
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
-        graph_url="${{ steps.fetch_graph.outputs.graph_url }}"
-        color="${{ steps.determine_status.outputs.status }}"
-        echo "Sending uptime graph to Discord"
+        color="${{ steps.extract_info.outputs.color }}"
+        status_text="${{ steps.extract_info.outputs.status_text }}"
+        graph_url="${{ steps.extract_info.outputs.graph_url }}"
+        echo "Sending status and graph to Discord"
         curl -H "Content-Type: application/json" \
              -d "{
                    \"embeds\": [
                      {
                        \"title\": \"Miko Radio Uptime Status Update\",
-                       \"description\": \"Here is the latest status update for Miko Radio.\",
-                       \"color\": 5814783,
+                       \"description\": \"$status_text\",
+                       \"color\": $color,
                        \"image\": {
                          \"url\": \"$graph_url\"
                        }
