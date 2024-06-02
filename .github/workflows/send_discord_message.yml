@@ -21,21 +21,41 @@ jobs:
         site_content=$(wget -qO- https://miko-radio.github.io/)
         echo "::set-output name=site::$site_content"
 
+    - name: Fetch uptime graph
+      id: fetch_graph
+      run: |
+        graph_url="https://miko-radio.github.io/graphs/uptime-graph.png"
+        echo "::set-output name=graph_url::$graph_url"
+
     - name: Print fetched content for debugging
       run: |
         echo "Fetched site content: ${{ steps.fetch_site.outputs.site }}"
+        echo "Uptime graph URL: ${{ steps.fetch_graph.outputs.graph_url }}"
 
     - name: Send site content to Discord
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
         content="${{ steps.fetch_site.outputs.site }}"
+        graph_url="${{ steps.fetch_graph.outputs.graph_url }}"
         # Properly escape the fetched HTML content
         escaped_content=$(echo "$content" | jq -Rsa .)
         echo "Sending site content to Discord: $escaped_content"
         curl -H "Content-Type: application/json" \
-             -d "{\"embeds\": [{\"title\": \"Site Update\",\"description\": $escaped_content,\"color\": 5814783}]}" \
+             -d "{
+                   \"embeds\": [
+                     {
+                       \"title\": \"Site Update\",
+                       \"description\": $escaped_content,
+                       \"color\": 5814783,
+                       \"image\": {
+                         \"url\": \"$graph_url\"
+                       }
+                     }
+                   ]
+                 }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
