@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '*/25 * * * *'
+    - cron: '*/2 * * * *'
 
 jobs:
   send_discord_message:
@@ -30,11 +30,10 @@ jobs:
     - name: Determine Status and Set Embed Color
       id: determine_status
       run: |
-        # Fetch the status of the site (this is an example, adjust as needed)
-        status=$(curl -s https://status.mikoradio.com/api/status)
-        if [[ "$status" == *"All systems operational"* ]]; then
+        # Example: Fetch the status of the site from the README or another source
+        if grep -q "All systems operational" README.md; then
           echo "::set-output name=color::3066993" # Green for online
-        elif [[ "$status" == *"Partial Outage"* ]]; then
+        elif grep -q "Partial Outage" README.md; then
           echo "::set-output name=color::15105570" # Orange for partial outage
         else
           echo "::set-output name=color::15158332" # Red for outage
@@ -54,14 +53,14 @@ jobs:
         graph_url="${{ steps.fetch_graph.outputs.graph_url }}"
         color="${{ steps.determine_status.outputs.color }}"
         # Properly escape the fetched content
-        escaped_content=$(echo "$content" | jq -Rsa .)
+        escaped_content=$(echo "$content" | jq -Rs .)
         echo "Sending README content and uptime graph to Discord"
         curl -H "Content-Type: application/json" \
              -d "{
                    \"embeds\": [
                      {
                        \"title\": \"Miko Radio Uptime Status Update\",
-                       \"description\": \"Here is the latest status update for Miko Radio.\",
+                       \"description\": $escaped_content,
                        \"color\": $color,
                        \"image\": {
                          \"url\": \"$graph_url\"
@@ -70,6 +69,7 @@ jobs:
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
