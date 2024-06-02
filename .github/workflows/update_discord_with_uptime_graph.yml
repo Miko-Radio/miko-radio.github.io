@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/25 * * * *'
 
 jobs:
   send_discord_message:
@@ -27,10 +27,24 @@ jobs:
         graph_url="https://raw.githubusercontent.com/${{ github.repository }}/HEAD/graphs/uptime-graph.svg"
         echo "::set-output name=graph_url::$graph_url"
 
+    - name: Determine Status and Set Embed Color
+      id: determine_status
+      run: |
+        # Fetch the status of the site (this is an example, adjust as needed)
+        status=$(curl -s https://status.mikoradio.com/api/status)
+        if [[ "$status" == *"All systems operational"* ]]; then
+          echo "::set-output name=color::3066993" # Green for online
+        elif [[ "$status" == *"Partial Outage"* ]]; then
+          echo "::set-output name=color::15105570" # Orange for partial outage
+        else
+          echo "::set-output name=color::15158332" # Red for outage
+        fi
+
     - name: Print fetched content for debugging
       run: |
         echo "Fetched README content: ${{ steps.fetch_readme.outputs.content }}"
         echo "Uptime graph URL: ${{ steps.fetch_graph.outputs.graph_url }}"
+        echo "Embed color: ${{ steps.determine_status.outputs.color }}"
 
     - name: Send site content and graph to Discord
       env:
@@ -38,6 +52,7 @@ jobs:
       run: |
         content="${{ steps.fetch_readme.outputs.content }}"
         graph_url="${{ steps.fetch_graph.outputs.graph_url }}"
+        color="${{ steps.determine_status.outputs.color }}"
         # Properly escape the fetched content
         escaped_content=$(echo "$content" | jq -Rsa .)
         echo "Sending README content and uptime graph to Discord"
@@ -47,49 +62,7 @@ jobs:
                      {
                        \"title\": \"Miko Radio Uptime Status Update\",
                        \"description\": \"Here is the latest status update for Miko Radio.\",
-                       \"color\": 5814783,
-                       \"fields\": [
-                         {
-                           \"name\": \"Website\",
-                           \"value\": \"[Miko Radio](https://mikoradio.com)\",
-                           \"inline\": true
-                         },
-                         {
-                           \"name\": \"Status Page\",
-                           \"value\": \"[Miko Radio Status](https://status.mikoradio.com)\",
-                           \"inline\": true
-                         },
-                         {
-                           \"name\": \"Latest Uptime Graph\",
-                           \"value\": \"[View Graph]($graph_url)\",
-                           \"inline\": false
-                         },
-                         {
-                           \"name\": \"Uptime\",
-                           \"value\": \"![Uptime CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Uptime%20CI/badge.svg)\",
-                           \"inline\": true
-                         },
-                         {
-                           \"name\": \"Response Time\",
-                           \"value\": \"![Response Time CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Response%20Time%20CI/badge.svg)\",
-                           \"inline\": true
-                         },
-                         {
-                           \"name\": \"Graphs\",
-                           \"value\": \"![Graphs CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Graphs%20CI/badge.svg)\",
-                           \"inline\": true
-                         },
-                         {
-                           \"name\": \"Static Site\",
-                           \"value\": \"![Static Site CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Static%20Site%20CI/badge.svg)\",
-                           \"inline\": true
-                         },
-                         {
-                           \"name\": \"Summary\",
-                           \"value\": \"![Summary CI](https://github.com/miko-radio/miko-radio.github.io/workflows/Summary%20CI/badge.svg)\",
-                           \"inline\": true
-                         }
-                       ],
+                       \"color\": $color,
                        \"image\": {
                          \"url\": \"$graph_url\"
                        }
@@ -97,6 +70,7 @@ jobs:
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
