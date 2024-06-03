@@ -3,10 +3,10 @@ owner: miko-radio # Your GitHub organization or username, where this repository 
 repo: miko-radio.github.io # The name of this repository
 
 sites:
-  - name: miko
+  - name: Miko Website
     url: https://mikoradio.com/
-  - name: Dashboard
-    url: http://ws.mikoradio.com/
+  - name: Miko Resources
+    url: https://status.mikoradio.com/
   - name: korivash
     url: https://www.korivash.com/
 
