@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '*/50 * * * *'
+    - cron: '*/5 * * * *'
 
 jobs:
   send_discord_message:
@@ -18,7 +18,7 @@ jobs:
     - name: Fetch README content
       id: fetch_readme
       run: |
-        readme_content=$(cat README.md)
+        readme_content=$(head -n 1 README.md)  # Read the first line
         echo "::set-output name=content::$readme_content"
     
     - name: Determine status color
@@ -46,8 +46,11 @@ jobs:
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
+        content="${{ steps.fetch_readme.outputs.content }}"
         status="${{ steps.determine_status.outputs.status }}"
         color="${{ steps.determine_status.outputs.color }}"
+        # Properly escape the fetched content
+        escaped_content=$(echo "$content" | jq -Rsa .)
         echo "Sending status to Discord"
         curl -H "Content-Type: application/json" \
              -d "{
@@ -66,12 +69,18 @@ jobs:
                            \"name\": \"Status Page\",
                            \"value\": \"[Miko Radio Status](https://status.mikoradio.com)\",
                            \"inline\": true
+                         },
+                         {
+                           \"name\": \"Summary\",
+                           \"value\": $escaped_content,
+                           \"inline\": false
                          }
                        ]
                      }
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
