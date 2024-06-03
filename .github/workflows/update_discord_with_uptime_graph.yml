@@ -27,13 +27,13 @@ jobs:
     - name: Fetch latest uptime graph
       id: fetch_graph
       run: |
-        graph_url="https://raw.githubusercontent.com/${{ github.repository }}/HEAD/graphs/uptime-graph.svg"
+        graph_url="https://status.mikoradio.com"
         echo "::set-output name=graph_url::$graph_url"
 
     - name: Fetch site summary
       id: fetch_summary
       run: |
-        summary=$(curl -s https://status.mikoradio.com | jq -R -s 'split("\n") | .[] | select(test("<!--start: status pages-->")) | . + input | .')
+        summary=$(curl -s https://status.mikoradio.com | pup 'section.summary json{}')
         echo "::set-output name=summary::$summary"
 
     - name: Print fetched content for debugging
@@ -48,10 +48,11 @@ jobs:
       run: |
         content="${{ steps.fetch_readme.outputs.content }}"
         graph_url="${{ steps.fetch_graph.outputs.graph_url }}"
-        summary="${{ steps.fetch_summary.outputs.summary }}"
+        summary=$(echo "${{ steps.fetch_summary.outputs.summary }}" | jq -r '.[] | select(.type == "tag" and .name == "div" and .class == "f changed") | .children[] | select(.type == "tag" and .name == "details") | .children[] | select(.type == "tag" and .name == "summary") | .children[] | select(.type == "text") | .text')
+        summary=$(echo "$summary" | sed ':a;N;$!ba;s/\n/ /g')
         # Properly escape the fetched content
         escaped_content=$(echo "$content" | jq -Rsa .)
-        escaped_summary=$(echo "$summary" | jq -Rsa .)
+        escaped_summary=$(echo "$summary" | jq -Rs .)
         echo "Sending README content, uptime graph, and site summary to Discord"
         curl -H "Content-Type: application/json" \
              -d "{
@@ -89,6 +90,7 @@ jobs:
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
