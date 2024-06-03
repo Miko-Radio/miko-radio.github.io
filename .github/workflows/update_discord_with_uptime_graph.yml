@@ -1,4 +1,4 @@
-name: Update Discord with Uptime Graph
+name: Update Discord with Uptime Status
 
 on:
   push:
@@ -21,40 +21,41 @@ jobs:
         readme_content=$(cat README.md)
         echo "::set-output name=content::$readme_content"
     
-    - name: Fetch latest uptime graph
-      id: fetch_graph
+    - name: Determine status color
+      id: determine_status
       run: |
-        graph_url="https://status.mikoradio.com/graphs/uptime-graph.svg"
-        echo "::set-output name=graph_url::$graph_url"
-
-    - name: Extract status summary
-      id: extract_summary
-      run: |
-        summary=$(grep -A 10 '<!--start: status pages-->' README.md | grep -v '<!--start: status pages-->')
-        summary="${summary:0:2000}"  # Limit summary to 2000 characters to fit Discord's limits
-        echo "::set-output name=summary::$summary"
+        status="online"
+        color=5814783  # Green by default
+        if grep -q "offline" README.md; then
+          status="offline"
+          color=16711680  # Red
+        elif grep -q "partial" README.md; then
+          status="partial"
+          color=16753920  # Orange
+        fi
+        echo "::set-output name=status::$status"
+        echo "::set-output name=color::$color"
 
     - name: Print fetched content for debugging
       run: |
         echo "Fetched README content: ${{ steps.fetch_readme.outputs.content }}"
-        echo "Uptime graph URL: ${{ steps.fetch_graph.outputs.graph_url }}"
-        echo "Extracted summary: ${{ steps.extract_summary.outputs.summary }}"
+        echo "Status: ${{ steps.determine_status.outputs.status }}"
+        echo "Color: ${{ steps.determine_status.outputs.color }}"
 
-    - name: Send site content and graph to Discord
+    - name: Send status to Discord
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
-        summary="${{ steps.extract_summary.outputs.summary }}"
-        # Properly escape the fetched content
-        escaped_summary=$(echo "$summary" | jq -Rs .)
-        echo "Sending uptime graph and site summary to Discord"
+        status="${{ steps.determine_status.outputs.status }}"
+        color="${{ steps.determine_status.outputs.color }}"
+        echo "Sending status to Discord"
         curl -H "Content-Type: application/json" \
              -d "{
                    \"embeds\": [
                      {
                        \"title\": \"Miko Radio Uptime Status Update\",
                        \"description\": \"Here is the latest status update for Miko Radio.\",
-                       \"color\": 5814783,
+                       \"color\": $color,
                        \"fields\": [
                          {
                            \"name\": \"Website\",
@@ -65,25 +66,13 @@ jobs:
                            \"name\": \"Status Page\",
                            \"value\": \"[Miko Radio Status](https://status.mikoradio.com)\",
                            \"inline\": true
-                         },
-                         {
-                           \"name\": \"Latest Uptime Graph\",
-                           \"value\": \"[View Graph](https://status.mikoradio.com/graphs/uptime-graph.svg)\",
-                           \"inline\": false
-                         },
-                         {
-                           \"name\": \"Summary\",
-                           \"value\": $escaped_summary,
-                           \"inline\": false
                          }
-                       ],
-                       \"image\": {
-                         \"url\": \"https://status.mikoradio.com/graphs/uptime-graph.svg\"
-                       }
+                       ]
                      }
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
