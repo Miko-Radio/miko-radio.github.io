@@ -24,13 +24,14 @@ jobs:
     - name: Fetch latest uptime graph
       id: fetch_graph
       run: |
-        graph_url="https://status.mikoradio.com"
+        graph_url="https://status.mikoradio.com/graphs/uptime-graph.svg"
         echo "::set-output name=graph_url::$graph_url"
 
     - name: Extract status summary
       id: extract_summary
       run: |
         summary=$(grep -A 10 '<!--start: status pages-->' README.md | grep -v '<!--start: status pages-->')
+        summary="${summary:0:2000}"  # Limit summary to 2000 characters to fit Discord's limits
         echo "::set-output name=summary::$summary"
 
     - name: Print fetched content for debugging
@@ -67,7 +68,7 @@ jobs:
                          },
                          {
                            \"name\": \"Latest Uptime Graph\",
-                           \"value\": \"[View Graph](https://status.mikoradio.com)\",
+                           \"value\": \"[View Graph](https://status.mikoradio.com/graphs/uptime-graph.svg)\",
                            \"inline\": false
                          },
                          {
@@ -83,6 +84,7 @@ jobs:
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
