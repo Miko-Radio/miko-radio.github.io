@@ -15,9 +15,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y jq
-
     - name: Fetch README content
       id: fetch_readme
       run: |
@@ -30,30 +27,26 @@ jobs:
         graph_url="https://status.mikoradio.com"
         echo "::set-output name=graph_url::$graph_url"
 
-    - name: Fetch site summary
-      id: fetch_summary
+    - name: Extract status summary
+      id: extract_summary
       run: |
-        summary=$(curl -s https://status.mikoradio.com | pup 'section.summary json{}')
+        summary=$(grep -A 10 '<!--start: status pages-->' README.md | grep -v '<!--start: status pages-->')
         echo "::set-output name=summary::$summary"
 
     - name: Print fetched content for debugging
       run: |
         echo "Fetched README content: ${{ steps.fetch_readme.outputs.content }}"
         echo "Uptime graph URL: ${{ steps.fetch_graph.outputs.graph_url }}"
-        echo "Site summary: ${{ steps.fetch_summary.outputs.summary }}"
+        echo "Extracted summary: ${{ steps.extract_summary.outputs.summary }}"
 
     - name: Send site content and graph to Discord
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
-        content="${{ steps.fetch_readme.outputs.content }}"
-        graph_url="${{ steps.fetch_graph.outputs.graph_url }}"
-        summary=$(echo "${{ steps.fetch_summary.outputs.summary }}" | jq -r '.[] | select(.type == "tag" and .name == "div" and .class == "f changed") | .children[] | select(.type == "tag" and .name == "details") | .children[] | select(.type == "tag" and .name == "summary") | .children[] | select(.type == "text") | .text')
-        summary=$(echo "$summary" | sed ':a;N;$!ba;s/\n/ /g')
+        summary="${{ steps.extract_summary.outputs.summary }}"
         # Properly escape the fetched content
-        escaped_content=$(echo "$content" | jq -Rsa .)
         escaped_summary=$(echo "$summary" | jq -Rs .)
-        echo "Sending README content, uptime graph, and site summary to Discord"
+        echo "Sending uptime graph and site summary to Discord"
         curl -H "Content-Type: application/json" \
              -d "{
                    \"embeds\": [
@@ -74,7 +67,7 @@ jobs:
                          },
                          {
                            \"name\": \"Latest Uptime Graph\",
-                           \"value\": \"[View Graph]($graph_url)\",
+                           \"value\": \"[View Graph](https://status.mikoradio.com)\",
                            \"inline\": false
                          },
                          {
@@ -84,12 +77,13 @@ jobs:
                          }
                        ],
                        \"image\": {
-                         \"url\": \"$graph_url\"
+                         \"url\": \"https://status.mikoradio.com/graphs/uptime-graph.svg\"
                        }
                      }
                    ]
                  }" \
              $DISCORD_WEBHOOK_URL
+
 
 
 
