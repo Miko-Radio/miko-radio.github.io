@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '*/1 * * * *'
+    - cron: '*/5 * * * *'
 
 jobs:
   send_discord_message:
@@ -15,12 +15,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+        curl -LO https://github.com/mgdm/htmlq/releases/download/v0.4.0/htmlq-v0.4.0-x86_64-unknown-linux-musl.tar.gz
+        tar xvf htmlq-v0.4.0-x86_64-unknown-linux-musl.tar.gz
+        sudo mv htmlq /usr/local/bin/
+
     - name: Fetch README content
       id: fetch_readme
       run: |
         readme_content=$(cat README.md)
         echo "::set-output name=content::$readme_content"
-
+    
     - name: Fetch latest uptime graph
       id: fetch_graph
       run: |
@@ -30,7 +38,7 @@ jobs:
     - name: Fetch site summary
       id: fetch_summary
       run: |
-        summary=$(wget -qO- https://status.mikoradio.com | pup 'section.summary json{}')
+        summary=$(wget -qO- https://status.mikoradio.com | htmlq -t section.summary)
         echo "::set-output name=summary::$summary"
 
     - name: Print fetched content for debugging
@@ -70,7 +78,7 @@ jobs:
                          },
                          {
                            \"name\": \"Latest Uptime Graph\",
-                           \"value\": \"![View Graph]($graph_url)\",
+                           \"value\": \"[View Graph]($graph_url)\",
                            \"inline\": false
                          },
                          {
