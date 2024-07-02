@@ -22,7 +22,7 @@
     "url": "https://status.mikoradio.com/",
     "icon": "https://icons.duckduckgo.com/ip3/status.mikoradio.com.ico",
     "slug": "miko-resources",
-    "status": "up",
+    "status": "down",
     "uptime": "100.00%",
     "uptimeDay": "100.00%",
     "uptimeWeek": "100.00%",
@@ -33,7 +33,9 @@
     "timeWeek": 329,
     "timeMonth": 323,
     "timeYear": 323,
-    "dailyMinutesDown": {}
+    "dailyMinutesDown": {
+      "2024-07-02": 0
+    }
   },
   {
     "name": "korivash",
@@ -41,15 +43,15 @@
     "icon": "https://icons.duckduckgo.com/ip3/www.korivash.com.ico",
     "slug": "korivash",
     "status": "up",
-    "uptime": "98.34%",
+    "uptime": "98.35%",
     "uptimeDay": "100.00%",
     "uptimeWeek": "100.00%",
     "uptimeMonth": "100.00%",
-    "uptimeYear": "98.34%",
+    "uptimeYear": "98.35%",
     "time": 222,
     "timeDay": 131,
     "timeWeek": 165,
-    "timeMonth": 172,
+    "timeMonth": 171,
     "timeYear": 222,
     "dailyMinutesDown": {
       "2024-05-18": 1238,
